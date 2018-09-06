@@ -15916,9 +15916,19 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                 runTest("compiler/testData/diagnostics/tests/redeclarations/RedeclarationParameterlessMainInvalid.kt");
             }
 
+            @TestMetadata("RedeclarationParameterlessMain_1_2.kt")
+            public void testRedeclarationParameterlessMain_1_2() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/redeclarations/RedeclarationParameterlessMain_1_2.kt");
+            }
+
             @TestMetadata("RedeclarationSuspendMainInMultiFile.kt")
             public void testRedeclarationSuspendMainInMultiFile() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/redeclarations/RedeclarationSuspendMainInMultiFile.kt");
+            }
+
+            @TestMetadata("RedeclarationSuspendMainInMultiFile_1_2.kt")
+            public void testRedeclarationSuspendMainInMultiFile_1_2() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/redeclarations/RedeclarationSuspendMainInMultiFile_1_2.kt");
             }
 
             @TestMetadata("Redeclarations.kt")
