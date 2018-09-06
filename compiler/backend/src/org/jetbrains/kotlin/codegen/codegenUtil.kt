@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.deserialization.PLATFORM_DEPENDENT_ANNOTATION_FQ_NAME
 import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl
-import org.jetbrains.kotlin.idea.MainFunctionDetector
 import org.jetbrains.kotlin.load.java.BuiltinMethodsWithSpecialGenericSignature.SpecialSignatureInfo
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.load.java.descriptors.JavaCallableMemberDescriptor
@@ -459,7 +458,7 @@ fun generateBridgeForMainFunctionIfNecessary(
 ) {
     val originElement = origin.element ?: return
     if (functionDescriptor.name.asString() != "main" || !DescriptorUtils.isTopLevelDeclaration(functionDescriptor)) return
-    if (!MainFunctionDetector.isMain(functionDescriptor.unwrapInitialDescriptorForSuspendFunction(), false, true)) return
+    if (!state.mainFunctionDetector.isMain(functionDescriptor.unwrapInitialDescriptorForSuspendFunction(), false, true)) return
 
     if (!functionDescriptor.isSuspend) return
 
