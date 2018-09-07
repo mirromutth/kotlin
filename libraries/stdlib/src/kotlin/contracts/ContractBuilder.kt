@@ -8,6 +8,10 @@ package kotlin.contracts
 import kotlin.internal.ContractsDsl
 import kotlin.internal.InlineOnly
 
+/**
+ * Signals that the annotated annotation class is a marker of an experimental contracts API.
+ * Any declaration annotated with that marker can only be used with the compiler argument `-Xuse-experimental=kotlin.contracts.ExperimentalContracts`.
+ */
 @Retention(AnnotationRetention.BINARY)
 @SinceKotlin("1.3")
 @Experimental
