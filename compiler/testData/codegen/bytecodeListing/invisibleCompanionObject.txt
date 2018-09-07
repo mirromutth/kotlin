@@ -2,7 +2,7 @@
 public final class TestInternalCompanion$Test {
     inner class TestInternalCompanion$Test
     private method <init>(): void
-    public synthetic method <init>(p0: kotlin.jvm.internal.DefaultConstructorMarker): void
+    synthetic method <init>(p0: kotlin.jvm.internal.DefaultConstructorMarker): void
 }
 
 @kotlin.Metadata
@@ -17,7 +17,7 @@ public final class TestInternalCompanion {
 final class TestPrivateCompanion$Test {
     inner class TestPrivateCompanion$Test
     private method <init>(): void
-    public synthetic method <init>(p0: kotlin.jvm.internal.DefaultConstructorMarker): void
+    synthetic method <init>(p0: kotlin.jvm.internal.DefaultConstructorMarker): void
 }
 
 @kotlin.Metadata
@@ -32,7 +32,7 @@ public final class TestPrivateCompanion {
 public final class TestProtectedCompanion$Test {
     inner class TestProtectedCompanion$Test
     private method <init>(): void
-    public synthetic method <init>(p0: kotlin.jvm.internal.DefaultConstructorMarker): void
+    synthetic method <init>(p0: kotlin.jvm.internal.DefaultConstructorMarker): void
 }
 
 @kotlin.Metadata

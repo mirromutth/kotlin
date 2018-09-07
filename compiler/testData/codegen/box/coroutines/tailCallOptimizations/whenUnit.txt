@@ -40,5 +40,5 @@ public abstract class X {
     inner class X$A
     inner class X$B
     private method <init>(): void
-    public synthetic method <init>(p0: kotlin.jvm.internal.DefaultConstructorMarker): void
+    synthetic method <init>(p0: kotlin.jvm.internal.DefaultConstructorMarker): void
 }

@@ -116,7 +116,7 @@ public class ConstructorCodegen {
 
     private void registerAccessorForHiddenConstructorIfNeeded(ClassConstructorDescriptor descriptor) {
         if (!InlineClassManglingUtilsKt.shouldHideConstructorDueToInlineClassTypeValueParameters(descriptor)) return;
-        context.getAccessor(descriptor, AccessorKind.NORMAL, null, null);
+        context.getAccessor(descriptor, AccessorKind.NORMAL, null, null, true);
     }
 
     public void generateSecondaryConstructor(

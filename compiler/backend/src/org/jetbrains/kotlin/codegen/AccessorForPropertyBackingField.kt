@@ -28,7 +28,8 @@ class AccessorForPropertyBackingField(
     extensionReceiverParameter: ReceiverParameterDescriptor?,
     dispatchReceiverParameter: ReceiverParameterDescriptor?,
     nameSuffix: String,
-    fieldAccessorKind: AccessorKind
+    fieldAccessorKind: AccessorKind,
+    shouldBePublic: Boolean
 ) : AccessorForPropertyDescriptor(
     property,
     delegateType ?: property.type,
@@ -37,5 +38,6 @@ class AccessorForPropertyBackingField(
     containingDeclaration,
     null,
     nameSuffix,
-    fieldAccessorKind
+    fieldAccessorKind,
+    shouldBePublic
 )

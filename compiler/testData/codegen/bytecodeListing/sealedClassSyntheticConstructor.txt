@@ -1,0 +1,12 @@
+@kotlin.Metadata
+public final class A$B {
+    inner class A$B
+    public method <init>(): void
+}
+
+@kotlin.Metadata
+public abstract class A {
+    inner class A$B
+    private method <init>(): void
+    synthetic method <init>(p0: kotlin.jvm.internal.DefaultConstructorMarker): void
+}

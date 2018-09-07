@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.resolve.jvm.AsmTypes;
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName;
 import org.jetbrains.kotlin.resolve.jvm.JvmPrimitiveType;
 import org.jetbrains.kotlin.resolve.jvm.RuntimeAssertionInfo;
+import org.jetbrains.kotlin.resolve.jvm.annotations.JvmAnnotationUtilKt;
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin;
 import org.jetbrains.kotlin.serialization.DescriptorSerializer;
 import org.jetbrains.kotlin.synthetic.SyntheticJavaPropertyDescriptor;
@@ -416,6 +417,11 @@ public class AsmUtil {
         }
 
         if (memberVisibility == Visibilities.LOCAL && memberDescriptor instanceof CallableMemberDescriptor) {
+            if (memberDescriptor instanceof AccessorForCallableDescriptor<?> &&
+                !((AccessorForCallableDescriptor) memberDescriptor).getAccessorShouldBePublic() &&
+                !isJvmDefaultInInterface(memberDescriptor)) {
+                return NO_FLAG_PACKAGE_PRIVATE;
+            }
             return ACC_PUBLIC;
         }
 
@@ -478,6 +484,12 @@ public class AsmUtil {
         }
 
         return null;
+    }
+
+    private static boolean isJvmDefaultInInterface(@NotNull MemberDescriptor memberDescriptor) {
+        return memberDescriptor instanceof AccessorForCallableDescriptor &&
+               DescriptorUtils.isInterface(memberDescriptor.getContainingDeclaration()) &&
+               JvmAnnotationUtilKt.hasJvmDefaultAnnotation(((AccessorForCallableDescriptor) memberDescriptor).getCalleeDescriptor());
     }
 
     public static Type stringValueOfType(Type type) {

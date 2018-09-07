@@ -42,7 +42,7 @@ public final class BSimpleObject {
 public final class CClassWithCompanion$Companion {
     inner class CClassWithCompanion$Companion
     private method <init>(): void
-    public synthetic method <init>(p0: kotlin.jvm.internal.DefaultConstructorMarker): void
+    synthetic method <init>(p0: kotlin.jvm.internal.DefaultConstructorMarker): void
     public synthetic static @kotlin.jvm.JvmStatic @kotlin.jvm.JvmOverloads method showSnackbar$default(p0: CClassWithCompanion$Companion, p1: java.lang.String, p2: int, p3: int, p4: int, p5: java.lang.Object): void
     public final @kotlin.jvm.JvmStatic @kotlin.jvm.JvmOverloads method showSnackbar(@org.jetbrains.annotations.NotNull p0: java.lang.String, @StringRes p1: int): void
     public final @kotlin.jvm.JvmStatic @kotlin.jvm.JvmOverloads method showSnackbar(@org.jetbrains.annotations.NotNull p0: java.lang.String, @StringRes p1: int, p2: int): void

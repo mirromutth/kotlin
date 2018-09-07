@@ -25,7 +25,8 @@ class AccessorForConstructorDescriptor(
     override val calleeDescriptor: ClassConstructorDescriptor,
     containingDeclaration: DeclarationDescriptor,
     override val superCallTarget: ClassDescriptor?,
-    override val accessorKind: AccessorKind
+    override val accessorKind: AccessorKind,
+    override val accessorShouldBePublic: Boolean
 ) : AbstractAccessorForFunctionDescriptor(containingDeclaration, Name.special("<init>")),
     ClassConstructorDescriptor,
     AccessorForCallableDescriptor<ConstructorDescriptor> {

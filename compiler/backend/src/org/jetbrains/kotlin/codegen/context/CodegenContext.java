@@ -46,6 +46,7 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
     private Map<AccessorKey, AccessorForCallableDescriptor<?>> accessors;
     private Map<AccessorKey, AccessorForPropertyDescriptorFactory> propertyAccessorFactories;
     private AccessorForCompanionObjectInstanceFieldDescriptor accessorForCompanionObjectInstanceFieldDescriptor = null;
+    private Boolean isThereAnyInlineNonPrivateContext = null;
 
     private static class AccessorKey {
         public final DeclarationDescriptor descriptor;
@@ -90,6 +91,7 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
         private final @Nullable ClassDescriptor superCallTarget;
         private final @NotNull String nameSuffix;
         private final @NotNull AccessorKind accessorKind;
+        private final boolean accessorShouldBePublic;
 
         private AccessorForPropertyDescriptor withSyntheticGetterAndSetter = null;
         private AccessorForPropertyDescriptor withSyntheticGetter = null;
@@ -100,13 +102,15 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
                 @NotNull DeclarationDescriptor containingDeclaration,
                 @Nullable ClassDescriptor superCallTarget,
                 @NotNull String nameSuffix,
-                @NotNull AccessorKind accessorKind
+                @NotNull AccessorKind accessorKind,
+                boolean accessorShouldBePublic
         ) {
             this.property = property;
             this.containingDeclaration = containingDeclaration;
             this.superCallTarget = superCallTarget;
             this.nameSuffix = nameSuffix;
             this.accessorKind = accessorKind;
+            this.accessorShouldBePublic = accessorShouldBePublic;
         }
 
         @SuppressWarnings("ConstantConditions")
@@ -118,7 +122,9 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
                 if (withSyntheticGetter == null) {
                     withSyntheticGetter = new AccessorForPropertyDescriptor(
                             property, containingDeclaration, superCallTarget, nameSuffix,
-                            true, false, accessorKind);
+                            true, false, accessorKind,
+                            accessorShouldBePublic
+                    );
                 }
                 return withSyntheticGetter;
             }
@@ -126,7 +132,9 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
                 if (withSyntheticSetter == null) {
                     withSyntheticSetter = new AccessorForPropertyDescriptor(
                             property, containingDeclaration, superCallTarget, nameSuffix,
-                            false, true, accessorKind);
+                            false, true, accessorKind,
+                            accessorShouldBePublic
+                    );
                 }
                 return withSyntheticSetter;
             }
@@ -140,7 +148,9 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
             if (withSyntheticGetterAndSetter == null) {
                 withSyntheticGetterAndSetter = new AccessorForPropertyDescriptor(
                         property, containingDeclaration, superCallTarget, nameSuffix,
-                        true, true, accessorKind);
+                        true, true, accessorKind,
+                        accessorShouldBePublic
+                );
             }
             return withSyntheticGetterAndSetter;
         }
@@ -404,9 +414,13 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
             @NotNull PropertyDescriptor propertyDescriptor,
             @Nullable ClassDescriptor superCallTarget,
             boolean getterAccessorRequired,
-            boolean setterAccessorRequired
+            boolean setterAccessorRequired,
+            boolean accessorShouldBePublic
     ) {
-        return getAccessor(propertyDescriptor, AccessorKind.NORMAL, null, superCallTarget, getterAccessorRequired, setterAccessorRequired);
+        return getAccessor(
+                propertyDescriptor, AccessorKind.NORMAL, null, superCallTarget, getterAccessorRequired, setterAccessorRequired,
+                accessorShouldBePublic
+        );
     }
 
 
@@ -415,15 +429,19 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
             PropertyDescriptor propertyAccessor = getAccessor(((PropertyAccessorDescriptor) descriptor).getCorrespondingProperty(),
                                                               AccessorKind.JVM_DEFAULT_COMPATIBILITY, null, null,
                                                               descriptor instanceof PropertyGetterDescriptor,
-                                                              descriptor instanceof PropertySetterDescriptor);
+                                                              descriptor instanceof PropertySetterDescriptor, false);
             return descriptor instanceof PropertyGetterDescriptor ? (D) propertyAccessor.getGetter() : (D) propertyAccessor.getSetter();
         }
-        return getAccessor(descriptor, AccessorKind.JVM_DEFAULT_COMPATIBILITY, null, null);
+        return getAccessor(descriptor, AccessorKind.JVM_DEFAULT_COMPATIBILITY, null, null, false);
     }
 
     @NotNull
-    private <D extends CallableMemberDescriptor> D getAccessor(@NotNull D descriptor, @Nullable ClassDescriptor superCallTarget) {
-        return getAccessor(descriptor, AccessorKind.NORMAL, null, superCallTarget);
+    private <D extends CallableMemberDescriptor> D getAccessor(
+            @NotNull D descriptor,
+            @Nullable ClassDescriptor superCallTarget,
+            boolean accessorShouldBePublic
+    ) {
+        return getAccessor(descriptor, AccessorKind.NORMAL, null, superCallTarget, accessorShouldBePublic);
     }
 
     @SuppressWarnings("unchecked")
@@ -437,7 +455,7 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
             CodegenContext c = afterInline.findParentContextWithDescriptor(superCallTarget);
             assert c != null : "Couldn't find a context for a super-call: " + descriptor;
             if (c != afterInline.getParentContext()) {
-                return (D) c.getAccessor(descriptor, superCallTarget);
+                return (D) c.getAccessor(descriptor, superCallTarget, false);
             }
         }
         return descriptor;
@@ -448,13 +466,16 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
             @NotNull D possiblySubstitutedDescriptor,
             @NotNull AccessorKind accessorKind,
             @Nullable KotlinType delegateType,
-            @Nullable ClassDescriptor superCallTarget
+            @Nullable ClassDescriptor superCallTarget,
+            boolean accessorShouldBePublic
     ) {
         // TODO this corresponds to default behavior for properties before fixing KT-9717. Is it Ok in general case?
         // Does not matter for other descriptor kinds.
         return getAccessor(possiblySubstitutedDescriptor, accessorKind, delegateType, superCallTarget,
                            /* getterAccessorRequired */ true,
-                           /* setterAccessorRequired */ true);
+                           /* setterAccessorRequired */ true,
+                           accessorShouldBePublic
+        );
     }
 
     @SuppressWarnings("unchecked")
@@ -465,7 +486,8 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
             @Nullable KotlinType delegateType,
             @Nullable ClassDescriptor superCallTarget,
             boolean getterAccessorRequired,
-            boolean setterAccessorRequired
+            boolean setterAccessorRequired,
+            boolean accessorShouldBePublic
     ) {
         if (accessors == null) {
             accessors = new LinkedHashMap<>();
@@ -492,16 +514,22 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
         String nameSuffix = SyntheticAccessorUtilKt.getAccessorNameSuffix(descriptor, key.superCallLabelTarget, accessorKind);
         AccessorForCallableDescriptor<?> accessor;
         if (descriptor instanceof SimpleFunctionDescriptor) {
-            accessor = new AccessorForFunctionDescriptor((FunctionDescriptor) descriptor, contextDescriptor, superCallTarget, nameSuffix, accessorKind);
+            accessor = new AccessorForFunctionDescriptor(
+                    (FunctionDescriptor) descriptor, contextDescriptor, superCallTarget, nameSuffix, accessorKind,
+                    accessorShouldBePublic
+            );
         }
         else if (descriptor instanceof ClassConstructorDescriptor) {
-            accessor = new AccessorForConstructorDescriptor((ClassConstructorDescriptor) descriptor, contextDescriptor, superCallTarget, accessorKind);
+            accessor = new AccessorForConstructorDescriptor(
+                    (ClassConstructorDescriptor) descriptor, contextDescriptor, superCallTarget, accessorKind, accessorShouldBePublic
+            );
         }
         else if (descriptor instanceof PropertyDescriptor) {
             PropertyDescriptor propertyDescriptor = (PropertyDescriptor) descriptor;
             if (accessorKind == AccessorKind.NORMAL || accessorKind == AccessorKind.JVM_DEFAULT_COMPATIBILITY) {
                 AccessorForPropertyDescriptorFactory factory =
-                        new AccessorForPropertyDescriptorFactory(propertyDescriptor, contextDescriptor, superCallTarget, nameSuffix, accessorKind);
+                        new AccessorForPropertyDescriptorFactory(propertyDescriptor, contextDescriptor, superCallTarget, nameSuffix, accessorKind,
+                                                                 accessorShouldBePublic);
                 propertyAccessorFactories.put(key, factory);
 
                 // Record worst case accessor for accessor methods generation.
@@ -514,7 +542,8 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
                     propertyDescriptor, contextDescriptor, delegateType,
                     accessorKind == AccessorKind.IN_CLASS_COMPANION ? null : propertyDescriptor.getExtensionReceiverParameter(),
                     accessorKind == AccessorKind.IN_CLASS_COMPANION ? null : propertyDescriptor.getDispatchReceiverParameter(),
-                    nameSuffix, accessorKind
+                    nameSuffix, accessorKind,
+                    accessorShouldBePublic
             );
         }
         else {
@@ -587,6 +616,7 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
         CodegenContext properContext = getFirstCrossInlineOrNonInlineContext();
         DeclarationDescriptor enclosing = descriptor.getContainingDeclaration();
         boolean isInliningContext = properContext.isInlineMethodContext();
+        boolean accessorShouldBePublic = properContext.isThereAnyInlineNonPrivateContext();
         boolean sameJvmDefault = hasJvmDefaultAnnotation(descriptor) ==
                                  isCallableMemberWithJvmDefaultAnnotation(properContext.contextDescriptor) ||
                                  properContext.contextDescriptor instanceof AccessorForCallableDescriptor;
@@ -596,7 +626,7 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
                 ((enclosing == properContext.getClassOrPackageParentContext().getContextDescriptor()) && sameJvmDefault))) {
             return descriptor;
         }
-        return (D) properContext.accessibleDescriptorIfNeeded(descriptor, superCallTarget, isInliningContext);
+        return (D) properContext.accessibleDescriptorIfNeeded(descriptor, superCallTarget, isInliningContext, accessorShouldBePublic);
     }
 
     @SuppressWarnings("unchecked")
@@ -604,7 +634,8 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
     private <D extends CallableMemberDescriptor> D accessibleDescriptorIfNeeded(
             @NotNull D descriptor,
             @Nullable ClassDescriptor superCallTarget,
-            boolean withinInliningContext
+            boolean withinInliningContext,
+            boolean accessorShouldBePublic
     ) {
         CallableMemberDescriptor unwrappedDescriptor = DescriptorUtils.unwrapFakeOverride(descriptor);
 
@@ -671,14 +702,17 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
             if (!getterAccessorRequired && !setterAccessorRequired) {
                 return descriptor;
             }
-            return (D) descriptorContext.getPropertyAccessor(propertyDescriptor, superCallTarget, getterAccessorRequired, setterAccessorRequired);
+            return (D) descriptorContext.getPropertyAccessor(
+                    propertyDescriptor, superCallTarget, getterAccessorRequired, setterAccessorRequired,
+                    accessorShouldBePublic
+            );
         }
         else {
             int flag = getVisibilityAccessFlag(unwrappedDescriptor);
             if (!isAccessorRequired(flag, unwrappedDescriptor, descriptorContext, withinInliningContext, superCallTarget != null)) {
                 return descriptor;
             }
-            return (D) descriptorContext.getAccessor(descriptor, superCallTarget);
+            return (D) descriptorContext.getAccessor(descriptor, superCallTarget, accessorShouldBePublic);
         }
     }
 
@@ -731,6 +765,27 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
     }
 
     public boolean isInlineMethodContext() {
+        return false;
+    }
+
+    public boolean isThereAnyInlineNonPrivateContext() {
+        if (isThereAnyInlineNonPrivateContext == null) {
+            isThereAnyInlineNonPrivateContext = computeIsThereAnyInlineNonPrivateContext();
+        }
+
+        return isThereAnyInlineNonPrivateContext;
+    }
+
+    private boolean computeIsThereAnyInlineNonPrivateContext() {
+        if (isInlineMethodContext() &&
+            getContextDescriptor() instanceof FunctionDescriptor &&
+            !Visibilities.isPrivate(((FunctionDescriptor) getContextDescriptor()).getVisibility())) {
+            return true;
+        }
+
+        CodegenContext parentContext = getParentContext();
+        if (parentContext != null) return parentContext.isThereAnyInlineNonPrivateContext();
+
         return false;
     }
 

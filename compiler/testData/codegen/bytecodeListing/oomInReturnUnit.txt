@@ -60,7 +60,7 @@ public final class helpers/CoroutineUtilKt {
 public final class helpers/EmptyContinuation$Companion {
     inner class helpers/EmptyContinuation$Companion
     private method <init>(): void
-    public synthetic method <init>(p0: kotlin.jvm.internal.DefaultConstructorMarker): void
+    synthetic method <init>(p0: kotlin.jvm.internal.DefaultConstructorMarker): void
 }
 
 @kotlin.Metadata

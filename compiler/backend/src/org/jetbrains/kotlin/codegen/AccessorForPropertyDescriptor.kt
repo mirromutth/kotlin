@@ -37,7 +37,8 @@ open class AccessorForPropertyDescriptor private constructor(
     val accessorSuffix: String,
     val isWithSyntheticGetterAccessor: Boolean,
     val isWithSyntheticSetterAccessor: Boolean,
-    final override val accessorKind: AccessorKind
+    final override val accessorKind: AccessorKind,
+    override val accessorShouldBePublic: Boolean
 ) : PropertyDescriptorImpl(
     containingDeclaration,
     null,
@@ -63,14 +64,15 @@ open class AccessorForPropertyDescriptor private constructor(
         nameSuffix: String,
         getterAccessorRequired: Boolean,
         setterAccessorRequired: Boolean,
-        accessorKind: AccessorKind
+        accessorKind: AccessorKind,
+        accessorShouldBePublic: Boolean
     ) : this(
         property, property.type, DescriptorUtils.getReceiverParameterType(property.extensionReceiverParameter),
         /* dispatchReceiverParameter = */
         if (property.isJvmStaticInObjectOrClassOrInterface()) null else property.dispatchReceiverParameter,
         containingDeclaration, superCallTarget, nameSuffix,
         getterAccessorRequired, setterAccessorRequired,
-        accessorKind
+        accessorKind, accessorShouldBePublic
     )
 
     protected constructor(
@@ -81,7 +83,8 @@ open class AccessorForPropertyDescriptor private constructor(
         containingDeclaration: DeclarationDescriptor,
         superCallTarget: ClassDescriptor?,
         nameSuffix: String,
-        accessorKind: AccessorKind
+        accessorKind: AccessorKind,
+        accessorShouldBePublic: Boolean
     ) : this(
         original,
         propertyType,
@@ -92,7 +95,8 @@ open class AccessorForPropertyDescriptor private constructor(
         nameSuffix,
         true,
         true,
-        accessorKind
+        accessorKind,
+        accessorShouldBePublic
     )
 
     init {
@@ -102,12 +106,21 @@ open class AccessorForPropertyDescriptor private constructor(
         )
 
         val getterDescriptor =
-            if (isWithSyntheticGetterAccessor) Getter(this, accessorKind) else calleeDescriptor.getter as PropertyGetterDescriptorImpl?
-        val setterDescriptor = if (isWithSyntheticSetterAccessor) Setter(this, accessorKind) else calleeDescriptor.setter
+            if (isWithSyntheticGetterAccessor)
+                Getter(this, accessorKind, accessorShouldBePublic)
+            else
+                calleeDescriptor.getter as PropertyGetterDescriptorImpl?
+
+        val setterDescriptor =
+            if (isWithSyntheticSetterAccessor) Setter(this, accessorKind, accessorShouldBePublic) else calleeDescriptor.setter
         initialize(getterDescriptor, setterDescriptor)
     }
 
-    class Getter(property: AccessorForPropertyDescriptor, override val accessorKind: AccessorKind) : PropertyGetterDescriptorImpl(
+    class Getter(
+        property: AccessorForPropertyDescriptor,
+        override val accessorKind: AccessorKind,
+        override val accessorShouldBePublic: Boolean
+    ) : PropertyGetterDescriptorImpl(
         property,
         Annotations.EMPTY,
         Modality.FINAL,
@@ -132,7 +145,11 @@ open class AccessorForPropertyDescriptor private constructor(
 
     }
 
-    class Setter(property: AccessorForPropertyDescriptor, override val accessorKind: AccessorKind) : PropertySetterDescriptorImpl(
+    class Setter(
+        property: AccessorForPropertyDescriptor,
+        override val accessorKind: AccessorKind,
+        override val accessorShouldBePublic: Boolean
+    ) : PropertySetterDescriptorImpl(
         property,
         Annotations.EMPTY,
         Modality.FINAL,
