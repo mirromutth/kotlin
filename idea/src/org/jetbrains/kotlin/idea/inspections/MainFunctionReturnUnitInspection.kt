@@ -13,11 +13,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElementVisitor
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.idea.MainFunctionDetector
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.core.setType
-import org.jetbrains.kotlin.idea.project.languageVersionSettings
+import org.jetbrains.kotlin.idea.isMainFunction
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -36,10 +34,8 @@ class MainFunctionReturnUnitInspection : AbstractKotlinInspection() {
             if (!isMain && testAnnotations.isEmpty()) return
 
             val descriptor = function.descriptor as? FunctionDescriptor ?: return
-            if (isMain) {
-                val mainFunctionDetector =
-                    MainFunctionDetector(function.languageVersionSettings) { it.resolveToDescriptorIfAny() }
-                if (!mainFunctionDetector.isMain(descriptor, checkReturnType = false)) return
+            if (isMain && function.isMainFunction(descriptor)) {
+                return
             } else {
                 val junitTestFqNames = listOf(FqName("org.junit.Test"), FqName("org.junit.jupiter.api.Test"))
                 if (testAnnotations.none { it.fqName() in junitTestFqNames }) return
