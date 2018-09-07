@@ -30,6 +30,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.refactoring.RefactoringFactory
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.PsiTestUtil
+import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.idea.MainFunctionDetector
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.search.allScope
@@ -70,7 +71,7 @@ class RunConfigurationTest: KotlinCodeInsightTestCase() {
                 val assertIsNotMain = "no" in options
 
                 val bindingContext = function.analyze(BodyResolveMode.FULL)
-                val isMainFunction = MainFunctionDetector(bindingContext).isMain(function)
+                val isMainFunction = MainFunctionDetector(bindingContext, LanguageVersionSettingsImpl.DEFAULT).isMain(function)
 
                 if (assertIsMain) {
                     Assert.assertTrue("The function ${function.fqName?.asString()} should be main", isMainFunction)
