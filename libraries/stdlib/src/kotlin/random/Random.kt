@@ -474,8 +474,10 @@ internal fun Int.takeUpperBits(bitCount: Int): Int =
     this.ushr(32 - bitCount) and (-bitCount).shr(31)
 
 internal fun checkRangeBounds(origin: Int, bound: Int) = require(bound > origin) { boundsErrorMessage(origin, bound) }
+@ExperimentalUnsignedTypes
 internal fun checkUIntRangeBounds(origin: UInt, bound: UInt) = require(bound > origin) { boundsErrorMessage(origin, bound) }
 internal fun checkRangeBounds(origin: Long, bound: Long) = require(bound > origin) { boundsErrorMessage(origin, bound) }
+@ExperimentalUnsignedTypes
 internal fun checkULongRangeBounds(origin: ULong, bound: ULong) = require(bound > origin) { boundsErrorMessage(origin, bound) }
 internal fun checkRangeBounds(origin: Double, bound: Double) = require(bound > origin) { boundsErrorMessage(origin, bound) }
 
